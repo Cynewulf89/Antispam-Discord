@@ -1,0 +1,24 @@
+# Ignore les fichiers générés par Python
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignore les fichiers de configuration de l'éditeur
+.vscode/
+
+# Ignore les fichiers temporaires de Docker
+**/.docker/
+
+# Ignore les fichiers liés aux dépendances locales ou aux environnements virtuels
+venv/
+env
+
+
+# Ignore les fichiers de logs
+*.log
+
+# Ignore le fichier de configuration de Docker qui contient des informations sensibles (si nécessaire)
+.docker/
+
+# Ignore les fichiers de sauvegarde de l'éditeur
+*~
