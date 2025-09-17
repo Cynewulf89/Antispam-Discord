@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID"))
 MENTION_ID = int(os.getenv("MENTION_ID"))
 MUTE_ROLE_NAME = "Silence"
