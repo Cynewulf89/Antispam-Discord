@@ -1,0 +1,8 @@
+services:
+  discord-bot:
+    build: .
+    container_name: silence
+    restart: unless-stopped
+    env_file:
+      - .env
+ 
