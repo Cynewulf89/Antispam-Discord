@@ -55,8 +55,6 @@ async def on_message(message):
     has_admin = discord.utils.get(member.roles, name=ADMIN_ROLE_NAME) is not None
     
     if has_staff or has_admin:
-        role_type = "admin" if has_admin else "staff"
-        print(f" {member} est {role_type}, ignoré par l'anti-spam", flush=True)
         await bot.process_commands(message)
         return
 
@@ -80,19 +78,15 @@ async def on_message(message):
     identical_messages = [(msg, timestamp, msg_obj, chan_id) for msg, timestamp, msg_obj, chan_id in recent_messages if msg == content and msg.strip() != "" and now - timestamp <= 300]
     should_mute = False
 
-    print(f"{member.name} - Messages identiques dans les 5 min: {len(identical_messages)} (contenu: '{content}')", flush=True)
-
     if not has_apprenti:
         # Utilisateur normal : 3 messages identiques dans les 5 minutes suffisent
         if len(identical_messages) >= 3:
             should_mute = True
-            print(f"{member.name} (normal) - Spam détecté: {len(identical_messages)} messages identiques en 5 min", flush=True)
     else:
         # Apprenti : 3 messages identiques ET dans au moins 2 canaux différents (dans les 5 min)
         unique_channels = {chan_id for msg, _, _, chan_id in identical_messages}
         if len(identical_messages) >= 3 and len(unique_channels) >= 2:
             should_mute = True
-            print(f"{member.name} (apprenti) - Spam détecté: {len(identical_messages)} messages identiques dans {len(unique_channels)} canaux en 5 min", flush=True)
 
     if should_mute and member.id not in reported_users:
         reported_users.add(member.id)
@@ -101,9 +95,7 @@ async def on_message(message):
         if not mute_role:
             try:
                 mute_role = await guild.create_role(name=MUTE_ROLE_NAME, reason="Rôle pour mute les spammeurs")
-                print(f" Rôle '{MUTE_ROLE_NAME}' créé", flush=True)
-            except Exception as e:
-                print(f"Impossible de créer le rôle '{MUTE_ROLE_NAME}' : {e}", flush=True)
+            except Exception:
                 return
 
         # ✅ CORRECTION : Sauvegarder les rôles actuels (hors @everyone ET hors Silence)
@@ -114,9 +106,8 @@ async def on_message(message):
             # Retirer tous les rôles sauf @everyone
             await member.remove_roles(*roles_to_save, reason="Mute pour spam")
             await member.add_roles(mute_role, reason="Spam détecté")
-            print(f" {member} a été mute. Rôles sauvegardés: {[r.name for r in roles_to_save]}", flush=True)
-        except Exception as e:
-            print(f" Erreur lors du mute de {member}: {e}", flush=True)
+            print(f"Ban (mute): {member.name} a été mute pour spam.", flush=True)
+        except Exception:
             return
 
         # Log dans le canal
@@ -140,11 +131,8 @@ async def on_message(message):
             try:
                 await msg_obj.delete()
                 deleted_count += 1
-                print(f"Message supprimé : {msg_obj.content[:50]}...", flush=True)
             except Exception as e:
-                print(f" Erreur suppression message : {e}", flush=True)
-        
-        print(f" {deleted_count} messages supprimés pour {member.name}", flush=True)
+                pass
 
     # Nettoyage de l'historique (garde uniquement les 5 dernières minutes)
     user_messages[message.author.id] = recent_messages
@@ -176,19 +164,15 @@ async def Silence(ctx, member: discord.Member):
             # Reset complet de l'historique des messages de l'utilisateur
             if member.id in user_messages:
                 del user_messages[member.id]
-                print(f" Historique des messages effacé pour {member.name}", flush=True)
 
             if log_channel:
                 await log_channel.send(f" {member.mention} a été unmute et a récupéré ses rôles !")
-
-            print(f" {member} unmute avec succès.", flush=True)
+            print(f"Unban (unmute): {member.name} a été unmute avec succès.", flush=True)
 
         except discord.Forbidden:
             await ctx.send("Permission insuffisante pour unmute.")
-            print("Permission insuffisante pour unmute.", flush=True)
         except Exception as e:
             await ctx.send(f"Erreur pendant l'unmute : {e}")
-            print(f"Erreur pendant l'unmute : {e}", flush=True)
     else:
         await ctx.send(f"❌ {member.mention} n'est pas dans la liste des utilisateurs muted.")
 
