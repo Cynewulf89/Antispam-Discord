@@ -6,6 +6,24 @@ from collections import defaultdict
 import os
 from dotenv import load_dotenv
 import sys
+import logging
+
+class ThrottleGatewayFilter(logging.Filter):
+    def __init__(self):
+        super().__init__()
+        self.last_log_times = {}
+
+    def filter(self, record):
+        msg = record.getMessage()
+        if "RESUMED session" in msg or "Can't keep up" in msg:
+            now = time.time()
+            key = "resumed" if "RESUMED session" in msg else "cant_keep_up"
+            if now - self.last_log_times.get(key, 0) < 86400:
+                return False
+            self.last_log_times[key] = now
+        return True
+
+logging.getLogger('discord.gateway').addFilter(ThrottleGatewayFilter())
 
 sys.stdout.reconfigure(line_buffering=True)
 
