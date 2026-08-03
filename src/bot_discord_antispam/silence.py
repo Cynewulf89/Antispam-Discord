@@ -130,6 +130,12 @@ async def on_message(message):
 
         # Log dans le canal
         log_channel = bot.get_channel(LOG_CHANNEL_ID)
+        if not log_channel:
+            try:
+                log_channel = await bot.fetch_channel(LOG_CHANNEL_ID)
+            except Exception as e:
+                print(f"Erreur canal de log: {e}", flush=True)
+
         if log_channel:
             channels_info = ""
             if has_apprenti:
@@ -164,6 +170,11 @@ async def Silence(ctx, member: discord.Member):
 
     mute_role = discord.utils.get(ctx.guild.roles, name=MUTE_ROLE_NAME)
     log_channel = bot.get_channel(LOG_CHANNEL_ID)
+    if not log_channel:
+        try:
+            log_channel = await bot.fetch_channel(LOG_CHANNEL_ID)
+        except Exception as e:
+            print(f"Erreur canal de log: {e}", flush=True)
 
     if member.id in muted_users_roles:
         try:
